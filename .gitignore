@@ -2,6 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.directory
+create_env_rocm.sh
 
 # C extensions
 *.so
@@ -127,6 +129,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+train/
+dataset_dogs_vs_cats/
 
 # Spyder project settings
 .spyderproject
