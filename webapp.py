@@ -27,6 +27,7 @@ uploaded_file = st.file_uploader("Choose a file")
 if uploaded_file is not None:
     # To read file as bytes:
     bytes_data = uploaded_file.getvalue()
+    if not os.path.exists("temp/") : os.mkdir("temp/")
     if not os.path.exists(f"temp/{st.session_state['uuid']}") : os.mkdir(f"temp/{st.session_state['uuid']}")
     with open(f"temp/{st.session_state['uuid']}/{st.session_state['uuid']}.jpg", 'wb') as f:
         f.write(bytes_data)

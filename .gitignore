@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 .directory
 create_env_rocm.sh
+temp/
 
 # C extensions
 *.so
