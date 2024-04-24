@@ -18,6 +18,7 @@ import sys
 from keras.applications.vgg16 import VGG16
 from keras.utils import to_categorical
 from keras.models import Sequential
+from keras.models import Model
 from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 from keras.layers import Dense
@@ -25,6 +26,9 @@ from keras.layers import Flatten
 from keras.models import Model
 from keras.optimizers import SGD
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.applications.resnet50 import preprocess_input
+from tensorflow.keras.preprocessing import image
+import numpy as np
 
 # create directories
 def organize(*,labeldirs:list[str],subdirs:list[str],dataset_home:str,categories:list[str],val_ratio:float)->None:
@@ -73,22 +77,22 @@ def organize(*,labeldirs:list[str],subdirs:list[str],dataset_home:str,categories
 # 	opt = SGD(learning_rate=0.001, momentum=0.9)
 # 	model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
 # 	return model
-def define_model():
- # load model
- model = VGG16(include_top=False, input_shape=(224, 224, 3))
- # mark loaded layers as not trainable
- for layer in model.layers:
- 	layer.trainable = False
- # add new classifier layers
- flat1 = Flatten()(model.layers[-1].output)
- class1 = Dense(128, activation='relu', kernel_initializer='he_uniform')(flat1)
- output = Dense(1, activation='sigmoid')(class1)
- # define new model
- model = Model(inputs=model.inputs, outputs=output)
- # compile model
- opt = SGD(learning_rate=0.001, momentum=0.9)
- model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
- return model
+def define_model()->Model:
+	# load model
+	model = VGG16(include_top=False, input_shape=(224, 224, 3))
+	# mark loaded layers as not trainable
+	for layer in model.layers:
+		layer.trainable = False
+	# add new classifier layers
+	flat1 = Flatten()(model.layers[-1].output)
+	class1 = Dense(128, activation='relu', kernel_initializer='he_uniform')(flat1)
+	output = Dense(1, activation='sigmoid')(class1)
+	# define new model
+	model = Model(inputs=model.inputs, outputs=output)
+	# compile model
+	opt = SGD(learning_rate=0.001, momentum=0.9)
+	model.compile(optimizer=opt, loss='binary_crossentropy', metrics=['accuracy'])
+	return model
 
 # plot diagnostic learning curves
 def summarize_diagnostics(history)->None:
@@ -108,7 +112,7 @@ def summarize_diagnostics(history)->None:
 	pyplot.close()
 
 # run the test harness for evaluating a model
-def run_test_harness(*,dataset_home:str,subdirs:list[str])->None:
+def run_test_harness(*,dataset_home:str,subdirs:list[str],path:str)->None:
 	# define model
 	model = define_model()
 	datagen = ImageDataGenerator(featurewise_center=True)
@@ -125,13 +129,23 @@ def run_test_harness(*,dataset_home:str,subdirs:list[str])->None:
 		class_mode='binary', batch_size=64, target_size=(224, 224))
 	# fit model
 	history = model.fit(train_it, steps_per_epoch=len(train_it),
-		validation_data=test_it, validation_steps=len(test_it), epochs=5, verbose=1)
+		validation_data=test_it, validation_steps=len(test_it), epochs=2, verbose=1)
 	# evaluate model
-	_, acc = model.evaluate_generator(test_it, steps=len(test_it), verbose=1)
+	_, acc = model.evaluate(test_it, steps=len(test_it), verbose=1)
 	print('> %.3f' % (acc * 100.0))
 	# learning curves
 	summarize_diagnostics(history)
-	model.save('test_model.h5')
+	model.save(path)
+
+def load_model(*,path)->Model:
+	model = define_model()
+	model.load_weights(path)
+	return model
+
+def predict_class(*,model,image):
+	prediction = model.predict(image)
+	print(prediction)
+	return prediction
 
 
 def main()->None:
@@ -140,7 +154,8 @@ def main()->None:
     dataset_home = 'dataset_dogs_vs_cats/'
     categories= ['cat', 'dog']
     organize(labeldirs=labeldirs,subdirs=subdirs,dataset_home=dataset_home,categories=categories,val_ratio=0.75)
-    run_test_harness(dataset_home=dataset_home,subdirs=subdirs)
+    #run_test_harness(dataset_home=dataset_home,subdirs=subdirs,path='VGG16_cat_dog.h5')
+
 
 if __name__=="__main__":
     main()
