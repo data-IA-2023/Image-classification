@@ -154,7 +154,7 @@ def main()->None:
     dataset_home = 'dataset_dogs_vs_cats/'
     categories= ['cat', 'dog']
     organize(labeldirs=labeldirs,subdirs=subdirs,dataset_home=dataset_home,categories=categories,val_ratio=0.75)
-    #run_test_harness(dataset_home=dataset_home,subdirs=subdirs,path='VGG16_cat_dog.h5')
+    run_test_harness(dataset_home=dataset_home,subdirs=subdirs,path='VGG16_cat_dog.h5')
 
 
 if __name__=="__main__":
